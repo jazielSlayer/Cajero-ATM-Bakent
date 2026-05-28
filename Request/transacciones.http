@@ -66,6 +66,7 @@ Content-Type: application/json
   "metodo": "ATM"
 }
 
+
 ### ─── DEPÓSITO multimoneda USD → BOB ───────────────────────
 # Deposita 100 USD → acredita el equivalente en BOB según tasa binance.
 POST {{api}}/deposito
