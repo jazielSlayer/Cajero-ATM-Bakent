@@ -1,0 +1,12 @@
+@api = http://localhost:3700
+
+### ✅ Así debe estar (sin espacios después de la URL, un solo salto antes del body)
+PUT {{api}}/cambiar/estado/tarjeta
+Content-Type: application/json
+
+{  
+    "numero_tarjeta":"4851617793844965",
+    "pin": "5903",
+    "nombre_completo": "Jaziel Armando Vargas Choque",  
+    "nuevo_estado": "activa"  
+}

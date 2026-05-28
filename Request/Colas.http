@@ -1,0 +1,196 @@
+@api = http://localhost:3700
+
+# ═══════════════════════════════════════════════════════════════════
+# TEORÍA DE COLAS — Plataforma ATM
+# Investigación Operativa II — Ing. Mauricio Peña Portillo
+# ═══════════════════════════════════════════════════════════════════
+
+
+# ───────────────────────────────────────────────────────────────────
+# 1. ANÁLISIS COMPLETO CON DATOS REALES DE LA BD
+#    λ se calcula desde tu tabla Transacciones (últimas 24h)
+#    μ se calcula desde el middleware de tiempo de servicio
+#    Devuelve modelos M/M/1, M/M/2, M/M/3 y M/M/1 en hora pico
+# ───────────────────────────────────────────────────────────────────
+### Análisis completo — datos reales
+GET {{api}}/analisis/colas
+
+
+# ───────────────────────────────────────────────────────────────────
+# 2. CÁLCULO MANUAL — Modelo M/M/1
+#    Ejemplo 1 del material: Supermercado jubilados
+#    λ = 30 clientes/hora, μ = 35 clientes/hora, s = 1
+#    Resultado esperado: p = 85.7%, Ls = 6, Lq = 5.14, Ws = 12 min
+# ───────────────────────────────────────────────────────────────────
+### M/M/1 — Ejemplo supermercado (formulario)
+POST {{api}}/analisis/colas/calcular
+Content-Type: application/json
+
+{
+    "lambda": 30,
+    "mu": 35,
+    "s": 1
+}
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 3. CÁLCULO MANUAL — Modelo M/M/1 con Pn
+#    Ejemplo 2 del material: Restaurante drive-thru
+#    λ = 0.4 autos/min, μ = 0.667 autos/min
+#    Calcula también P(n>10) para ver si supera capacidad de 10 espacios
+# ───────────────────────────────────────────────────────────────────
+### M/M/1 — Drive-thru con probabilidad Pn=10
+POST {{api}}/analisis/colas/calcular
+Content-Type: application/json
+
+{
+    "lambda": 0.4,
+    "mu": 0.6667,
+    "s": 1,
+    "calcular_pn": true,
+    "n": 10
+}
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 4. CÁLCULO MANUAL — Modelo M/M/s (múltiples servidores)
+#    Ejemplo Cine Center del material
+#    λ = 81 clientes/hora, μ = 30 clientes/hora, s = 3 empleados
+#    Resultado esperado: p = 90%, Ws = 7.4 minutos
+# ───────────────────────────────────────────────────────────────────
+### M/M/3 — Cine Center candy bar (formulario)
+POST {{api}}/analisis/colas/calcular
+Content-Type: application/json
+
+{
+    "lambda": 81,
+    "mu": 30,
+    "s": 3
+}
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 5. CÁLCULO MANUAL — Modelo M/M/s gasolinera
+#    Ejemplo 2 M/M/s del material: 4 surtidores
+#    λ = 30 clientes/hora, μ = 12 clientes/hora, s = 4
+#    Resultado esperado: P0 = 7.3%, p = 62.5%, Lq = 0.528
+# ───────────────────────────────────────────────────────────────────
+### M/M/4 — Gasolinera (formulario)
+POST {{api}}/analisis/colas/calcular
+Content-Type: application/json
+
+{
+    "lambda": 30,
+    "mu": 12,
+    "s": 4
+}
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 6. CÁLCULO MANUAL — M/M/4 gasolinera + Pn=3
+#    Verifica P3 = 19.01% (igual al slide del material)
+# ───────────────────────────────────────────────────────────────────
+### M/M/4 gasolinera — P(n=3) exactamente
+POST {{api}}/analisis/colas/calcular
+Content-Type: application/json
+
+{
+    "lambda": 30,
+    "mu": 12,
+    "s": 4,
+    "calcular_pn": true,
+    "n": 3
+}
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 7. CÁLCULO MANUAL — M/M/4 gasolinera + Pn=9
+#    Verifica P9 = 1.13% (igual al slide del material)
+# ───────────────────────────────────────────────────────────────────
+### M/M/4 gasolinera — P(n=9)
+POST {{api}}/analisis/colas/calcular
+Content-Type: application/json
+
+{
+    "lambda": 30,
+    "mu": 12,
+    "s": 4,
+    "calcular_pn": true,
+    "n": 9
+}
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 8. Pn RUTA DIRECTA — parámetros en la URL
+#    GET con n=3, usando valores de la gasolinera
+#    Resultado esperado: Pn = 19.01%
+# ───────────────────────────────────────────────────────────────────
+### Pn directo — P(3 clientes) gasolinera
+GET {{api}}/analisis/colas/pn/3?lambda=30&mu=12&s=4
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 9. Pn RUTA DIRECTA — P(n=9) gasolinera
+#    Resultado esperado: Pn = 1.13%
+# ───────────────────────────────────────────────────────────────────
+### Pn directo — P(9 clientes) gasolinera
+GET {{api}}/analisis/colas/pn/9?lambda=30&mu=12&s=4
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 10. Pn RUTA DIRECTA — usando datos reales de la BD
+#     Sin query params: lee λ y μ desde Transacciones + middleware
+# ───────────────────────────────────────────────────────────────────
+### Pn con datos reales de la BD — P(0 clientes en sistema)
+GET {{api}}/analisis/colas/pn/0
+
+###
+### Pn con datos reales de la BD — P(1 cliente en sistema)
+GET {{api}}/analisis/colas/pn/1
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 11. SISTEMA INESTABLE — prueba de error
+#     λ >= μ: el sistema no puede atender las llegadas
+#     Debe devolver mensaje de error con estable: false
+# ───────────────────────────────────────────────────────────────────
+### Sistema inestable (λ >= μ) — debe retornar error
+POST {{api}}/analisis/colas/calcular
+Content-Type: application/json
+
+{
+    "lambda": 100,
+    "mu": 50,
+    "s": 1
+}
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 12. APLICADO AL ATM — escenario normal operación Bolivia
+#     λ = 60 tx/hora estimado, μ = 90 tx/hora (Express + SP ~40ms)
+#     Modelo M/M/1 con 1 worker Node.js
+# ───────────────────────────────────────────────────────────────────
+### ATM Bolivia — operación normal M/M/1
+POST {{api}}/analisis/colas/calcular
+Content-Type: application/json
+
+{
+    "lambda": 60,
+    "mu": 90,
+    "s": 1
+}
+
+###
+# ───────────────────────────────────────────────────────────────────
+# 13. APLICADO AL ATM — hora pico con 2 workers PM2
+#     λ = 150 tx/hora (pico mediodía), s = 2 workers
+# ───────────────────────────────────────────────────────────────────
+### ATM Bolivia — hora pico M/M/2 con PM2
+POST {{api}}/analisis/colas/calcular
+Content-Type: application/json
+
+{
+    "lambda": 150,
+    "mu": 90,
+    "s": 2
+}

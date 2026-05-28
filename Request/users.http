@@ -1,0 +1,48 @@
+@api = http://localhost:3700
+
+###
+GET {{api}}/usuarios/completo
+
+###
+POST {{api}}/usuario/datos
+Content-Type: application/json
+
+{
+    "nombre_completo": "Jaziel Armando Vargas cHoque"
+}
+
+### PASO 1 - Solicitar código de verificación
+POST {{api}}/usuario/solicitar-verificacion
+Content-Type: application/json
+
+{
+    "correo": "j.v.36977714@gmail.com"
+}
+
+### PASO 2 - Confirmar el código que llegó al correo
+POST {{api}}/usuario/confirmar-codigo
+Content-Type: application/json
+
+{
+    "correo": "j.v.36977714@gmail.com",
+    "codigo": "625089"
+}
+
+### PASO 3 - Crear el usuario
+POST {{api}}/crear/usuario
+Content-Type: application/json
+
+{
+    "nombre": "Jaziel ",
+    "apellido": "Vargas Choque",
+    "direccion": "Calle 21 de Enero 456",
+    "telefono": "76543210",
+    "edad": 25,
+    "correo": "j.v.36977714@gmail.com",
+    "contrasena": "DrXeno79TESLA2",
+    "tipo_tarjeta": "credito",
+    "tipo_cuenta": "ahorro"
+}
+
+###
+GET {{api}}/usuario/saldo/Jaziel%20Armando%20Vargas%20Choque
